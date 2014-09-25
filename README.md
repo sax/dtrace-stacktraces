@@ -32,5 +32,6 @@ rake compile
 * http://dtrace.org/blogs/dap/2013/11/20/understanding-dtrace-ustack-helpers/
 * https://blog.indutny.com/3.dtrace-ustack-helper
 * http://www.perkin.org.uk/posts/mdb-support-for-go.html
+* https://github.com/chrisa/perl-Devel-DTrace-Helper/blob/master/lib/Devel/DTrace/Helper.pm
 
 * http://clalance.blogspot.com/2011/01/writing-ruby-extensions-in-c-part-5.html
