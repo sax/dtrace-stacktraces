@@ -2,11 +2,12 @@
 #include "ruby_dtrace_ustack.h"
 #include <dtrace.h>
 #include <fcntl.h>
+#include <errno.h>
 
 static VALUE RubyUstack;
 
 void Init_ruby_ustack();
-static VALUE load_ustack_helper(VALUE *path);
+static VALUE load_ustack_helper(VALUE klass, VALUE path);
 
 void Init_ruby_ustack()
 {
@@ -14,6 +15,8 @@ void Init_ruby_ustack()
   rb_define_singleton_method(RubyUstack, "load_ustack_helper", load_ustack_helper, 1);
 }
 
+/* -------------------------------------------------------------------- */
+/* DOF loading */
 
 static const char *helper = "/dev/dtrace/helper";
 
@@ -44,18 +47,25 @@ static int load_dof(dof_hdr_t *dof) {
   return (0);
 }
 
-static VALUE load_ustack_helper(VALUE *path) {
+/* -------------------------------------------------------------------- */
+/* Ruby */
+
+static VALUE load_ustack_helper(VALUE klass, VALUE path) {
   dtrace_hdl_t *dtp;
   dtrace_prog_t *helper;
+
   int err;
   void *dof;
-  FILE *fp;
   int argc = 8;
   char *argv[8] = { "ruby" };
 
-  // TODO convert path to char
-  if ((fp = fopen(RSTRING_PTR(path), "r")) == NULL)
-		rb_raise(rb_eFatal, "failed to open %s", path);
+  printf("c land: I am trying to load %s", RSTRING_PTR(path));
+  puts("");
+
+  FILE *fp = fopen(RSTRING_PTR(path), "r");
+  if (fp == NULL) {
+		rb_raise(rb_eFatal, "failed to open '%s', errno %d: %s", path, errno, strerror(errno));
+  }
 
   dtp = dtrace_open(DTRACE_VERSION, DTRACE_O_NODEV, &err);
   if (dtp == NULL) {
@@ -67,10 +77,10 @@ static VALUE load_ustack_helper(VALUE *path) {
   (void) dtrace_setopt(dtp, "unodefs", NULL);
 
   if ((helper = dtrace_program_fcompile(dtp, fp,
-          DTRACE_C_CPP | DTRACE_C_ZDEFS,
+          DTRACE_C_ZDEFS,
           argc, argv)) == NULL) {
     dtrace_close(dtp);
-    rb_raise(rb_eFatal, "compile failed: %s", dtrace_errmsg(dtp, dtrace_errno(dtp)));
+    rb_raise(rb_eFatal, "compile failed: errno %d: %s", dtrace_errno(dtp), dtrace_errmsg(dtp, dtrace_errno(dtp)));
   }
 
   (void) fclose(fp);
