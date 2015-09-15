@@ -1,5 +1,4 @@
 require "bundler/gem_tasks"
-require "rake/extensiontask"
 
 namespace :ext do
   desc 'make clean in extensions'
@@ -13,7 +12,11 @@ end
 
 task :release => 'ext:clean'
 
-Rake::ExtensionTask.new "ruby_ustack" do |ext|
-  ext.ext_dir = 'ext/dtrace/stacktraces'
-  ext.lib_dir = "ext/dtrace/stacktraces"
+task :compile => 'ext:clean' do
+  sh %{
+cd ext/dtrace/stacktraces
+ruby extconf.rb
+make
+  }
 end
+
