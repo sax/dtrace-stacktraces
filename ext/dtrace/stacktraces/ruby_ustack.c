@@ -56,8 +56,8 @@ static VALUE load_ustack_helper(VALUE klass, VALUE path) {
 
   int err;
   void *dof;
-  int argc = 8;
-  char *argv[8] = { "ruby" };
+  int argc = 1;
+  char *argv[1] = { "ruby" };
 
   printf("c land: I am trying to load %s", RSTRING_PTR(path));
   puts("");
